@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bulk Email Sender</title>
+    <style>
+      body {
+        font-family: "Poppins", sans-serif;
+        background-color: #f0f4f8;
+        margin: 0;
+        padding: 0;
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        overflow: hidden; /* Prevent body scrolling */
+      }
+
+      .container {
+        background-color: #ffffff;
+        padding: 30px;
+        border-radius: 15px;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        width: 100%;
+        max-width: 700px;
+        max-height: 90vh; /* Limit height to 90% of the viewport */
+        overflow-y: auto; /* Enable vertical scrolling */
+      }
+
+      h1 {
+        text-align: center;
+        font-size: 24px;
+        color: #333;
+        margin-bottom: 20px;
+      }
+
+      label {
+        display: block;
+        font-size: 14px;
+        margin-bottom: 10px;
+        color: #666;
+      }
+
+      textarea,
+      input[type="text"],
+      input[type="password"],
+      input[type="file"] {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 20px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        font-size: 14px;
+        color: #333;
+      }
+
+      button {
+        width: 100%;
+        padding: 12px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        font-size: 16px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+      }
+
+      button:hover {
+        background-color: #0056b3;
+      }
+
+      .file-label {
+        background-color: #e9ecef;
+        padding: 10px;
+        border-radius: 5px;
+        cursor: pointer;
+        text-align: center;
+        font-size: 14px;
+        margin-bottom: 20px;
+        border: 1px solid #ddd;
+      }
+
+      #status {
+        text-align: center;
+        margin-top: 20px;
+        font-size: 16px;
+        color: #28a745;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Bulk Email Sender</h1>
+      <form id="emailForm" enctype="multipart/form-data">
+        <label for="senderEmail">Sender Email Address:</label>
+        <input type="text" id="senderEmail" placeholder="Enter sender email" />
+
+        <label for="senderPassword">Sender Email Password:</label>
+        <input
+          type="password"
+          id="senderPassword"
+          placeholder="Enter sender email password"
+        />
+
+        <label for="emails">Email Addresses one per line:</label>
+        <textarea
+          id="emails"
+          rows="4"
+          placeholder="Enter email addresses separated by commas"
+        ></textarea>
+
+        <label for="subject">Subject:</label>
+        <input type="text" id="subject" placeholder="Enter the email subject" />
+
+        <label for="message">Message Template (HTML):</label>
+        <textarea
+          id="message"
+          rows="5"
+          placeholder="Enter the message body in HTML"
+        ></textarea>
+
+        <label for="attachment" class="file-label"
+          >Attach File (optional)</label
+        >
+        <input type="file" id="attachment" accept=".pdf,.doc,.docx,.jpg,.png" />
+
+        <button type="submit">Send Emails</button>
+      </form>
+      <div id="status"></div>
+    </div>
+
+    <script>
+      document
+        .getElementById("emailForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+
+          const senderEmail = document.getElementById("senderEmail").value;
+          const senderPassword =
+            document.getElementById("senderPassword").value;
+          const emails = document
+            .getElementById("emails")
+            .value.split("\n")
+            .map((email) => email.trim())
+            .filter((email) => email); // Split by new line, trim spaces, and filter out empty values
+          const subject = document.getElementById("subject").value;
+          const message = document.getElementById("message").value;
+          const attachment = document.getElementById("attachment").files[0];
+
+          if (
+            senderEmail &&
+            senderPassword &&
+            emails.length > 0 &&
+            subject &&
+            message
+          ) {
+            const formData = new FormData();
+            formData.append("senderEmail", senderEmail);
+            formData.append("senderPassword", senderPassword);
+            formData.append("emails", JSON.stringify(emails));
+            formData.append("subject", subject);
+            formData.append("message", message);
+            if (attachment) {
+              formData.append("attachment", attachment);
+            }
+
+            const response = await fetch("/send-emails", {
+              method: "POST",
+              body: formData,
+            });
+
+            const result = await response.json();
+            document.getElementById("status").innerText = result.message;
+          } else {
+            alert("Please fill out all fields");
+          }
+        });
+    </script>
+  </body>
+</html>
